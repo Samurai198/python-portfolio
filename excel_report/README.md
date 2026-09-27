@@ -20,6 +20,8 @@ CSV или XLSX с колонками `date, manager, product, qty, price` (пр
 
 Заголовки выделены, ширина колонок подобрана автоматически.
 
+![Листы отчёта](../docs/excel_report.png)
+
 ## Запуск
 
 ```bash

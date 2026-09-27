@@ -10,8 +10,11 @@
 | [Парсер каталога](price_parser/) | Собрать товары и цены с сайта в Excel | requests, BeautifulSoup, openpyxl |
 | [Автоотчёт по продажам](excel_report/) | Сделать сводный отчёт из «сырой» таблицы за секунды | pandas, openpyxl |
 | [Бот для заявок](tg_bot/) | Принимать заявки клиентов в Telegram 24/7 | aiogram 3 |
+| [Монитор заказов FL.ru](orders_monitor/) | Первым узнавать о новых заказах по нужной теме | RSS, requests, Telegram API |
 
 Пример готового отчёта: [`excel_report/example_report.xlsx`](excel_report/example_report.xlsx).
+
+![Отчёт по продажам](docs/excel_report.png)
 
 ## Что могу сделать для вас
 
