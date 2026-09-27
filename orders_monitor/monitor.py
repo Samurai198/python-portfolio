@@ -101,8 +101,9 @@ def send_telegram(orders):
     for order in orders:
         budget = f"{order['budget']} ₽" if order["budget"] else "не указан"
         text = f"🆕 {order['title']}\nБюджет: {budget}\n{order['link']}"
-        requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
-                      data={"chat_id": chat_id, "text": text}, timeout=15)
+        response = requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                                 data={"chat_id": chat_id, "text": text}, timeout=15)
+        response.raise_for_status()
 
 
 def check(keywords, telegram):
@@ -112,9 +113,10 @@ def check(keywords, telegram):
     new = [o for o in parse_feed(response.content)
            if o["link"] not in seen and matches(o, keywords)]
     if new:
-        append_xlsx(new)
+        # Сначала Telegram: если отправка упадёт, заказы не запишутся как «виденные»
         if telegram:
             send_telegram(new)
+        append_xlsx(new)
         seen.update(o["link"] for o in new)
         save_seen(seen)
     for order in new:

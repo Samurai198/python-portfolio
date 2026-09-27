@@ -46,6 +46,7 @@ class Order(StatesGroup):
 
 
 dp = Dispatcher()
+ADMIN_ID = 0
 
 
 @dp.message(CommandStart())
@@ -93,7 +94,7 @@ async def order_service(message: Message, state: FSMContext, bot: Bot):
     username = f"@{message.from_user.username}" if message.from_user.username else "без username"
     text = (f"🆕 Новая заявка\n\nИмя: {data['name']}\nТелефон: {data['phone']}\n"
             f"Услуга: {data['service']}\nTelegram: {username}")
-    await bot.send_message(int(os.environ["ADMIN_ID"]), text)
+    await bot.send_message(ADMIN_ID, text)
     await message.answer("Спасибо! Мы перезвоним вам в ближайшее время.", reply_markup=main_kb)
 
 
@@ -103,7 +104,13 @@ async def order_service_wrong(message: Message):
 
 
 async def main():
-    bot = Bot(os.environ["BOT_TOKEN"])
+    global ADMIN_ID
+    # Проверяем настройки сразу при запуске, а не когда клиент уже оставил заявку
+    token, admin_id = os.environ.get("BOT_TOKEN"), os.environ.get("ADMIN_ID")
+    if not token or not (admin_id or "").isdigit():
+        raise SystemExit("Задайте BOT_TOKEN и ADMIN_ID (числовой), см. README")
+    ADMIN_ID = int(admin_id)
+    bot = Bot(token)
     await dp.start_polling(bot)
 
 

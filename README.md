@@ -29,6 +29,9 @@
 
 ## Установка
 
+Нужен Python 3.10+.
+
 ```bash
 pip install -r requirements.txt
+pytest   # проверить, что всё работает
 ```
