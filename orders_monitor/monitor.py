@@ -1,4 +1,4 @@
-"""Монитор новых заказов на фриланс-биржах (FL.ru, Хабр Фриланс).
+"""Монитор новых заказов на фриланс-биржах (сейчас — FL.ru).
 
 Читает официальные RSS-ленты проектов, оставляет только заказы
 с нужными словами (python, парсер, бот...) и:
@@ -31,9 +31,9 @@ from pathlib import Path
 import requests
 from openpyxl import Workbook, load_workbook
 
+# Биржа -> адрес RSS-ленты. Чтобы следить за ещё одной биржей, добавьте строку.
 FEEDS = {
     "FL.ru": "https://www.fl.ru/rss/all.xml",
-    "Хабр Фриланс": "https://freelance.habr.com/tasks.rss",
 }
 KEYWORDS = ["python", "питон", "парсер", "парсинг", "бот", "telegram",
             "телеграм", "excel", "скрипт", "автоматизац"]
@@ -160,7 +160,7 @@ def check(keywords, telegram):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Монитор заказов FL.ru и Хабр Фриланс")
+    ap = argparse.ArgumentParser(description="Монитор заказов на фриланс-биржах")
     ap.add_argument("--watch", type=int, metavar="MIN", help="проверять каждые MIN минут")
     ap.add_argument("--telegram", action="store_true", help="слать новые заказы в Telegram")
     ap.add_argument("--keywords", help="свои слова через запятую, например: django,api")

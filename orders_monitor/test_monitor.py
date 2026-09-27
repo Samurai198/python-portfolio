@@ -66,6 +66,8 @@ def test_check_collects_all_feeds_and_survives_failed_one(tmp_path, monkeypatch)
     monkeypatch.setattr(monitor, "SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(monitor, "XLSX_FILE", tmp_path / "orders.xlsx")
     monkeypatch.setattr(monitor.requests, "get", fake_get)
+    monkeypatch.setattr(monitor, "FEEDS", {"FL.ru": "https://fl.example/rss",
+                                           "Хабр": "https://habr.example/rss"})
 
     monitor.check(["парсер"], telegram=False)
     from openpyxl import load_workbook
