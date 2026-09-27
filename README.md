@@ -1,8 +1,9 @@
 # Python-автоматизация: парсеры, Excel-отчёты, Telegram-боты
 
 Делаю небольшие скрипты, которые экономят часы ручной работы.
-Написать: Telegram [@Coffee_2code](https://t.me/Coffee_2code) · coffee2code@mail.ru
 Ниже примеры: каждый проект запускается одной командой, код с комментариями.
+
+**Связаться:** Telegram [@Coffee_2code](https://t.me/Coffee_2code) · coffee2code@mail.ru
 
 ## Проекты
 
