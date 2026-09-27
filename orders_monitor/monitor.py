@@ -121,7 +121,7 @@ def load_env():
     """Читает BOT_TOKEN и ADMIN_ID из файла .env, если он есть."""
     if not ENV_FILE.exists():
         return
-    for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+    for line in ENV_FILE.read_text(encoding="utf-8-sig").splitlines():  # -sig: Блокнот добавляет BOM
         key, sep, value = line.partition("=")
         if sep and not line.lstrip().startswith("#"):
             os.environ.setdefault(key.strip(), value.strip())
