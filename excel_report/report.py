@@ -15,6 +15,8 @@ import pandas as pd
 from openpyxl.styles import Font, PatternFill
 
 REQUIRED = ["date", "manager", "product", "qty", "price"]
+HEADERS = {"date": "Дата", "manager": "Менеджер", "product": "Товар", "qty": "Кол-во",
+           "price": "Цена", "revenue": "Выручка", "deals": "Сделок", "month": "Месяц"}
 
 
 def load(path):
@@ -53,11 +55,17 @@ def save(sheets, out):
     header_fill = PatternFill("solid", fgColor="DDEBF7")
     with pd.ExcelWriter(out, engine="openpyxl") as writer:
         for name, table in sheets.items():
-            table.to_excel(writer, sheet_name=name, index=False)
+            table.rename(columns=HEADERS).to_excel(writer, sheet_name=name, index=False)
             ws = writer.sheets[name]
             for cell in ws[1]:
                 cell.font = Font(bold=True)
                 cell.fill = header_fill
+            for row in ws.iter_rows(min_row=2):
+                for cell in row:
+                    if hasattr(cell.value, "year"):
+                        cell.number_format = "DD.MM.YYYY"
+                    elif isinstance(cell.value, (int, float)):
+                        cell.number_format = "#,##0"
             for column in ws.columns:
                 width = max(len(str(c.value or "")) for c in column) + 2
                 ws.column_dimensions[column[0].column_letter].width = min(width, 50)
