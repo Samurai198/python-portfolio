@@ -35,6 +35,13 @@ def test_filter_by_keywords():
     assert not matches(logo_order, ["парсер", "python"])
 
 
+def test_keyword_matches_word_start_only():
+    order = {"title": "Разработать проект котельной", "description": "", "category": ""}
+    assert not matches(order, ["бот"])
+    order["title"] = "Нужны боты для Telegram"
+    assert matches(order, ["бот"])
+
+
 def test_extract_budget():
     assert extract_budget("Бюджет: 15000 руб") == 15000
     assert extract_budget("Цена договорная") is None

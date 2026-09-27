@@ -65,8 +65,9 @@ def extract_budget(text):
 
 
 def matches(order, keywords):
+    """Ищет слова только с начала слова: «бот» найдёт «боты», но не «работа»."""
     text = f"{order['title']} {order['description']} {order['category']}".lower()
-    return any(word in text for word in keywords)
+    return any(re.search(r"\b" + re.escape(word), text) for word in keywords)
 
 
 def load_seen():
@@ -88,8 +89,8 @@ def append_xlsx(orders):
         ws = wb.active
         ws.title = "Заказы"
         ws.append(COLUMNS)
-        ws.column_dimensions["B"].width = 70
-        ws.column_dimensions["E"].width = 50
+        for column, width in zip("ABCDE", (17, 70, 10, 35, 50)):
+            ws.column_dimensions[column].width = width
     for order in orders:
         ws.append([order[c] for c in COLUMNS])
     wb.save(XLSX_FILE)
