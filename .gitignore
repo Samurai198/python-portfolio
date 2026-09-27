@@ -4,3 +4,4 @@ __pycache__/
 .env
 *.xlsx
 !excel_report/example_report.xlsx
+seen.json
