@@ -1,0 +1,6 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+*.xlsx
+!excel_report/example_report.xlsx
