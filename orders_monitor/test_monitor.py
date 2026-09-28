@@ -77,3 +77,44 @@ def test_check_collects_all_feeds_and_survives_failed_one(tmp_path, monkeypatch)
 
     monitor.check(["парсер"], telegram=False)  # повторный запуск не дублирует
     assert len(list(load_workbook(tmp_path / "orders.xlsx").active.values)) == 2
+
+
+def test_telegram_error_hides_token_and_keeps_undelivered(tmp_path, monkeypatch):
+    import monitor
+    import requests
+
+    two_items = SAMPLE.replace("Нарисовать логотип", "Нужен парсер логотипов")
+
+    class Response:
+        content = two_items.encode()
+
+        def raise_for_status(self):
+            pass
+
+    sent = []
+
+    def fake_post(url, data, **kwargs):
+        if sent:  # первое сообщение уходит, на втором связь рвётся
+            raise requests.ConnectionError(f"обрыв при запросе к {url}")
+        sent.append(data["text"])
+        return Response()
+
+    monkeypatch.setenv("BOT_TOKEN", "123:SECRET")
+    monkeypatch.setenv("ADMIN_ID", "42")
+    monkeypatch.setattr(monitor, "SEEN_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(monitor, "XLSX_FILE", tmp_path / "orders.xlsx")
+    monkeypatch.setattr(monitor, "FEEDS", {"FL.ru": "https://fl.example/rss"})
+    monkeypatch.setattr(monitor.requests, "get", lambda *a, **k: Response())
+    monkeypatch.setattr(monitor.requests, "post", fake_post)
+    monkeypatch.setattr(monitor.time, "sleep", lambda s: None)
+
+    monitor.check(["парсер"], telegram=True)
+    assert len(sent) == 1
+    assert len(monitor.load_seen()) == 1  # недоставленный заказ не помечен как виденный
+
+    import io, contextlib
+    out = io.StringIO()
+    sent.append("уже был")
+    with contextlib.redirect_stdout(out):
+        monitor.check(["парсер"], telegram=True)
+    assert "SECRET" not in out.getvalue() and "***" in out.getvalue()

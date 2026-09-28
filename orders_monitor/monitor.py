@@ -107,14 +107,30 @@ def append_xlsx(orders):
     wb.save(XLSX_FILE)
 
 
-def send_telegram(orders):
+class TelegramError(Exception):
+    pass
+
+
+def send_one(order, attempts=3):
+    """Шлёт один заказ; при обрыве связи пробует ещё раз. Токен в ошибках скрыт."""
     token, chat_id = os.environ["BOT_TOKEN"], os.environ["ADMIN_ID"]
+    budget = f"{order['budget']} ₽" if order["budget"] else "не указан"
+    text = f"🆕 [{order['source']}] {order['title']}\nБюджет: {budget}\n{order['link']}"
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                                     data={"chat_id": chat_id, "text": text}, timeout=15)
+            response.raise_for_status()
+            return
+        except requests.RequestException as e:
+            if attempt == attempts:
+                raise TelegramError(str(e).replace(token, "***")) from None
+            time.sleep(5)
+
+
+def send_telegram(orders):
     for order in orders:
-        budget = f"{order['budget']} ₽" if order["budget"] else "не указан"
-        text = f"🆕 [{order['source']}] {order['title']}\nБюджет: {budget}\n{order['link']}"
-        response = requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
-                                 data={"chat_id": chat_id, "text": text}, timeout=15)
-        response.raise_for_status()
+        send_one(order)
 
 
 def load_env():
@@ -147,16 +163,23 @@ def check(keywords, telegram):
         if order["link"] not in seen and order["link"] not in links and matches(order, keywords):
             new.append(order)
             links.add(order["link"])
-    if new:
-        # Сначала Telegram: если отправка упадёт, заказы не запишутся как «виденные»
-        if telegram:
-            send_telegram(new)
-        append_xlsx(new)
-        seen.update(o["link"] for o in new)
-        save_seen(seen)
+    delivered = []
     for order in new:
+        if telegram:
+            try:
+                send_one(order)
+            except TelegramError as e:
+                print(f"Не удалось отправить в Telegram: {e}\nОстальные заказы отправлю при следующей проверке.")
+                break
+        delivered.append(order)
+    # В «виденные» попадают только доставленные заказы, остальные придут в следующий раз
+    if delivered:
+        append_xlsx(delivered)
+        seen.update(o["link"] for o in delivered)
+        save_seen(seen)
+    for order in delivered:
         print(f"[{order['date']}] [{order['source']}] {order['title']}\n    {order['link']}")
-    print(f"Новых подходящих заказов: {len(new)}")
+    print(f"Новых подходящих заказов: {len(delivered)}")
 
 
 def main():
@@ -175,7 +198,7 @@ def main():
         try:
             check(keywords, args.telegram)
         except requests.RequestException as e:
-            print(f"Не удалось отправить в Telegram: {e}")
+            print(f"Ошибка сети: {str(e).replace(os.environ.get('BOT_TOKEN') or '<нет>', '***')}")
         if not args.watch:
             break
         time.sleep(args.watch * 60)
